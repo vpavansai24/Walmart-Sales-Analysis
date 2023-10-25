@@ -1,4 +1,4 @@
-# Walmart Sales Dataset Analysis - ADT Fall23 - Group 07
+# Walmart Sales Analysis - ADT Fall23 - Group 07
 
 ## Summary
 
