@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block content %}
+{% include 'header.html' %}
+
+
+<div class="container mt-5">
+
+    <div class="row">
+        <div class="col">
+            <form class="form-inline">
+                <!-- Sort By Section -->
+                <div class="form-group mr-2">
+                    <label for="sort_by">Sort by:</label>
+                    <select class="form-control" name="sort_by" id="sort_by">
+                        {% for item in store_details[0].keys() %}
+                            <option value="{{ item }}" {% if params['sort_by'] == item %}selected{% endif %}>{{ item }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Buttons for Sorting -->
+                <button type="submit" class="btn btn-primary mr-2" formaction="{{ url_for('index') }}">Sort</button>
+            </form>
+        </div>
+
+        <div class="col">
+            <form class="form-inline">
+                <div class="row">
+                    <!-- Filter By Section -->
+                    <div class="col-md-6">
+                        <label for="filter_by">Filter by:</label>
+                        <select class="form-control" name="filter_by" id="filter_by">
+                            {% for item in store_details[0].keys() %}
+                                <option value="{{ item }}" {% if params['filter_by'] == item %}selected{% endif %}>{{ item }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+            
+                    <!-- Filter Value Section -->
+                    <div class="col-md-6">
+                        <label for="filter_value" class="sr-only">Filter Value:</label>
+                        <input type="text" class="form-control" name="filter_value" placeholder="Enter filter value">
+                    </div>
+                </div>
+            
+                <!-- Button for Filtering -->
+                <button type="submit" class="btn btn-primary" formaction="{{ url_for('search') }}">Filter</button>
+            </form>
+        </div>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">StoreNumber</th>
+                <th scope="col">StoreName</th>
+                <th scope="col">Manager</th>
+                <th scope="col">Location</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr style="display: table-row">
+                <form id="insertForm" action="{{ url_for('insert_record') }}" method="POST">
+                    <td><input name="StoreNumber" type="text"></td>
+                    <td><input name="StoreName" type="text"></td>
+                    <td><input name="Manager" type="text"></td>
+                    <td><input name="Location" type="text"></td>
+                    <td><button type="button" onclick="insertRow()">Insert</button></td>
+                </form>        
+            </tr>
+            {% for item in store_details %}
+            <tr style="display: table-row" id="{{'row_edit_' + loop.index | string}}">
+                <td>{{item.StoreNumber}}</td>
+                <td>{{item.StoreName}}</td>
+                <td>{{item.Manager}}</td>
+                <td>{{item.Location}}</td>
+                <td><button onclick="editRow({{loop.index}})">Edit</button></td>
+                <td><form onsubmit="return confirm('Are you sure you want to DELETE this record from the Database?');" 
+                    action="{{url_for('delete')}}" method="POST">
+                    <input type="hidden" name="id" value={{item.StoreNumber}}>
+                    <input type="submit" value="Delete"></form> </td>
+            </tr>
+            <tr style="display: none" id="{{'row_save_' + loop.index | string}}">
+                <td><input name="StoreNumber" type="text" value="{{item.StoreNumber}}"></input></td>
+                <td><input name="StoreName" type="text" value="{{item.StoreName}}"></input></td>
+                <td><input name="Manager" type="text" value="{{item.Manager}}"></input></td>
+                <td><input name="Location" type="text" value="{{item.Location}}"></input></td>
+                <td><button onclick="saveRow({{loop.index}})">Save</button></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+
+    <script>
+
+        function insertRow() {
+            // Get values from the insert form
+            const insertForm = document.getElementById('insertForm');
+            const formData = new FormData(insertForm);
+
+            // Convert formData to a plain JavaScript object
+            const data = {};
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
+
+            // Send the data to the server using fetch
+            fetch("/insert", {
+                method: 'POST',
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(data)
+            })
+            .then((res) => {
+                if (res.status === 200) {
+                    location.reload();
+                } else {
+                    console.error("Insert failed");
+                }
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+        }
+
+
+        function editRow(index) {
+            edit_id  = 'row_edit_' + index
+            save_id = 'row_save_' + index
+            e = document.getElementById(edit_id)
+            e.style.display = "none"
+            newRow = document.getElementById(save_id)
+            newRow.style.display = "table-row"
+        }
+
+        function saveRow(index) {
+            edit_id  = 'row_edit_' + index
+            save_id = 'row_save_' + index
+            e = document.getElementById(edit_id)
+            e.style.display = "table-row"
+            e = document.getElementById(save_id)
+            e.style.display = "none"
+
+            data = {}
+            inputEles = newRow.getElementsByTagName('input')
+            for (inp of inputEles) {
+                key = inp.name
+                value = inp.value
+                data[key] = value
+            }
+            console.log(data)
+            fetch("/save", {
+                method: 'POST',
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(data)
+            }).then((res) => {
+                console.log(res)
+                if (res.status == 200) {
+                    location.reload();
+                }
+            }).catch((err) => {
+                console.log(err)
+            })
+        }
+    </script>
+</div>
+{% endblock %}

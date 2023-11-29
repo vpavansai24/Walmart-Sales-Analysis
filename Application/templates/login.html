@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+{% include 'header.html' %}
+<div class="container mt-5">
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul class=flashes>
+            {% for message in messages %}
+            <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+    <form action="{{ url_for('login_post')}}" method="POST">
+        <input name="username" type="text" value="admin"></input>
+        <input name="password" type="password" value="admin"></input>
+        <button type="submit">Login</button>
+    </form>
+</div>
+{% endblock %}
