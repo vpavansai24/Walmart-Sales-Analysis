@@ -96,34 +96,91 @@ def sales():
     return render_template('index.html', store_details=store_details, params=request.args)
 
 
-@app.route('/plot')
+@app.route('/plot', methods=['GET', 'POST'])
+@login_required
 def plot():
-    filename = "test.png"
-    return render_template("plots.html", filename=filename)
+    filename = "AM3.png"
+
+    if request.method == 'POST':
+        image_count = int(request.form.get('imageCount', 0))
+
+        if image_count == 1:
+            filename = 'AM1.png'
+        elif image_count == 2:
+            filename = 'AM2.png'
+
+    return render_template('plots.html', filename=filename)
+
+
+@app.route('/plot2', methods=['GET', 'POST'])
+@login_required
+def plot2():
+    filename = "AM3.png"
+
+    if request.method == 'POST':
+        image_count = int(request.form.get('imageCount2', 0))
+
+        if image_count == 1:
+            filename = 'AM1.png'
+        elif image_count == 2:
+            filename = 'AM2.png'
+
+    return render_template('plots.html', filename2=filename)
+
+
+# @app.route('/plot', methods=['GET', 'POST'])
+# @login_required
+# def plot():
+#     filename = "AM3.png"
+
+#     if request.method == 'POST':
+#         image_count = int(request.form.get('imageCount', 0))
+
+#         if image_count == 1:
+#             filename = 'AM1.png'
+#         elif image_count == 2:
+#             filename = 'AM2.png'
+
+#     return render_template('plots.html', filename=filename)
+
+# @app.route('/plot', methods=['GET', 'POST'])
+# @login_required
+# def plot2():
+#     filename = "AM3.png"
+
+#     if request.method == 'POST':
+#         image_count = int(request.form.get('imageCount2', 0))
+
+#         if image_count == 1:
+#             filename = 'AM1.png'
+#         elif image_count == 2:
+#             filename = 'AM2.png'
+
+#     return render_template('plots.html', filename=filename)
  
-@app.route('/plots', methods=['POST'])
-def upload_image():
-    if 'file' not in request.files:
-        flash('No file part')
-        return redirect(request.url)
-    file = request.files['file']
-    if file.filename == '':
-        flash('No image selected for uploading')
-        return redirect(request.url)
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        #print('upload_image filename: ' + filename)
-        flash('Image successfully uploaded and displayed below')
-        return render_template('plots.html', filename=filename)
-    else:
-        flash('Allowed image types are - png, jpg, jpeg, gif')
-        return redirect(request.url)
+# @app.route('/plots', methods=['POST'])
+# def upload_image():
+#     if 'file' not in request.files:
+#         flash('No file part')
+#         return redirect(request.url)
+#     file = request.files['file']
+#     if file.filename == '':
+#         flash('No image selected for uploading')
+#         return redirect(request.url)
+#     if file and allowed_file(file.filename):
+#         filename = secure_filename(file.filename)
+#         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+#         #print('upload_image filename: ' + filename)
+#         flash('Image successfully uploaded and displayed below')
+#         return render_template('plots.html', filename=filename)
+#     else:
+#         flash('Allowed image types are - png, jpg, jpeg, gif')
+#         return redirect(request.url)
  
-@app.route('/display/<filename>')
-def display_image(filename):
-    #print('display_image filename: ' + filename)
-    return redirect(url_for('static', filename='uploads/' + filename), code=301)
+# @app.route('/display/<filename>')
+# def display_image(filename):
+#     #print('display_image filename: ' + filename)
+#     return redirect(url_for('static', filename='uploads/' + filename), code=301)
 
 @app.route("/save", methods=['POST'])
 @login_required

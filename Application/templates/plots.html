@@ -1,12 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+{% include 'header.html' %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Display</title>
+    <style>
+        body {
+            text-align: center;
+        }
+
+        form, img {
+            margin: auto;
+            display: block;
+        }
+    </style>
 </head>
 <body>
-    <h1>Image Display</h1>
-    <img src="{{ url_for('static', filename=filename) }}" alt="Example Image">
+    <h1>Image Display 01</h1>
+
+    {% if filename %}
+        <img src="{{ url_for('static', filename=filename) }}" alt="Example Image" style="width: 1000px;">
+    {% endif %}
+
+    <form method="post" action="/plot">
+        <label for="imageCount">Enter a number (1 or 2):</label>
+        <input type="number" name="imageCount" id="imageCount" min="1" max="2" required>
+        <button type="submit">Submit</button>
+    </form>
+
+    <h1>Image Display 02</h1>
+
+    {% if filename2 %}
+        <img src="{{ url_for('static', filename=filename2) }}" alt="Example Image" style="width: 1000px;">
+    {% endif %}
+
+    <form method="post" action="/plot2">
+        <label for="imageCount2">Enter a number (1 or 2):</label>
+        <input type="number" name="imageCount2" id="imageCount2" min="1" max="2" required>
+        <button type="submit">Submit</button>
+    </form>
 </body>
 </html>
+{% endblock %}
