@@ -64,6 +64,18 @@ def login_post():
     login_user(user)
     return redirect(url_for('index'))
 
+#signup
+@app.route("/signup", methods=['GET'])
+def signup_get():
+    return render_template('signup.html')
+
+@app.route("/signup", methods=['POST'])
+def signup_post():
+    # Handle signup logic here
+    # Retrieve data from the form, validate, and store in the database
+    # Flash messages for success or failure
+    return redirect(url_for('login_get'))
+
 @app.get("/logout")
 @login_required
 def logout():
