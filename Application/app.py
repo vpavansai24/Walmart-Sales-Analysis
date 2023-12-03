@@ -2,22 +2,16 @@ from flask import Flask, render_template, g, request, make_response, redirect, u
 import os
 import sqlite3
 import pandas as pd
+import plotly.express as px
 from flask_login import LoginManager, UserMixin, login_required, login_user, logout_user
 from werkzeug.utils import secure_filename
 
 
 
-app = Flask(__name__, static_url_path='/static', static_folder='static')
+app = Flask(__name__)
 
-UPLOAD_FOLDER = 'static/uploads/'
- 
+UPLOAD_FOLDER = 'static/plots/'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
- 
-ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
- 
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 app.secret_key = "super secret string"
@@ -109,6 +103,56 @@ def sales():
     return render_template('index_sales.html', store_details=store_details, params=request.args)
 
 
+@app.route('/plot_sales', methods=['GET', 'POST'])
+@login_required
+def plot_store_sales():
+
+    df = pd.read_csv('combined_sales_data.csv')
+    df['Date'] = pd.to_datetime(df['Date'])
+
+    max_sales = df['Date'].max()
+    min_sales = df['Date'].min()
+
+    print(f"Maximum Weekly Sales: {max_sales}")
+    print(f"Minimum Weekly Sales: {min_sales}")
+
+    # Print different store numbers in the filtered DataFrame
+    unique_store_numbers = df['Store'].unique()
+    print(f"Different Store Numbers: {unique_store_numbers}")
+
+    if request.method == 'POST':
+        print("saterted post")
+        # Extract form data
+        store_number = int(request.form['storeNumber'])
+        start_date = request.form['startDate']
+        end_date = request.form['endDate']
+
+        df_filtered = df[(df['Store'] == store_number) & (df['Date'] >= start_date) & (df['Date'] <= end_date)]
+
+        # Print the maximum and minimum values of Weekly_Sales
+        max_sales = df_filtered['Date'].max()
+        min_sales = df_filtered['Date'].min()
+
+        print(f"Maximum Weekly Sales: {max_sales}")
+        print(f"Minimum Weekly Sales: {min_sales}")
+
+        # Print different store numbers in the filtered DataFrame
+        unique_store_numbers = df_filtered['Store'].unique()
+        print(f"Different Store Numbers: {unique_store_numbers}")
+
+        # Create line plot using Plotly Express for the filtered DataFrame
+        fig = px.line(df_filtered, x='Date', y='Weekly_Sales', title=f'Weekly Sales Over Time - Store {store_number}')
+        fig.update_xaxes(title_text='Date')
+        fig.update_yaxes(title_text='Weekly Sales')
+
+        # Show the plot
+        fig.show()
+
+        return render_template('plots.html')
+
+
+
+
 @app.route('/plot', methods=['GET', 'POST'])
 @login_required
 def plot():
@@ -125,20 +169,20 @@ def plot():
     return render_template('plots.html', filename=filename)
 
 
-@app.route('/plot2', methods=['GET', 'POST'])
-@login_required
-def plot2():
-    filename = "AM3.png"
+# @app.route('/plot2', methods=['GET', 'POST'])
+# @login_required
+# def plot2():
+#     filename = "AM3.png"
 
-    if request.method == 'POST':
-        image_count = int(request.form.get('imageCount2', 0))
+#     if request.method == 'POST':
+#         image_count = int(request.form.get('imageCount2', 0))
 
-        if image_count == 1:
-            filename = 'AM1.png'
-        elif image_count == 2:
-            filename = 'AM2.png'
+#         if image_count == 1:
+#             filename = 'AM1.png'
+#         elif image_count == 2:
+#             filename = 'AM2.png'
 
-    return render_template('plots.html', filename2=filename)
+#     return render_template('plots.html', filename2=filename)
 
 @app.route("/save", methods=['POST'])
 @login_required

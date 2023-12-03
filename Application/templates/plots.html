@@ -1,3 +1,5 @@
+<!-- store_sales_form.html -->
+
 {% extends "base.html" %}
 {% block content %}
 
@@ -6,42 +8,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Display</title>
+    <title>Store Sales Plot Form</title>
     <style>
         body {
             text-align: center;
         }
 
-        form, img {
+        form {
             margin: auto;
             display: block;
         }
     </style>
 </head>
 <body>
-    <h1>Image Display 01</h1>
+    <h1>Store Sales Plot Form</h1>
 
-    {% if filename %}
-        <img src="{{ url_for('static', filename=filename) }}" alt="Example Image" style="width: 1000px;">
-    {% endif %}
+    <form method="post" action="{{ url_for('plot_store_sales') }}">
+        <label for="storeNumber">Store Number:</label>
+        <input type="number" name="storeNumber" id="storeNumber" min="1" value="16" required><br>
 
-    <form method="post" action="/plot">
-        <label for="imageCount">Enter a number (1 or 2):</label>
-        <input type="number" name="imageCount" id="imageCount" min="1" max="2" required>
-        <button type="submit">Submit</button>
-    </form>
+        <label for="startDate">Start Date:</label>
+        <input type="date" name="startDate" id="startDate" value="2010-02-05" required><br>
 
-    <h1>Image Display 02</h1>
+        <label for="endDate">End Date:</label>
+        <input type="date" name="endDate" id="endDate" value="2012-10-26" required><br>
 
-    {% if filename2 %}
-        <img src="{{ url_for('static', filename=filename2) }}" alt="Example Image" style="width: 1000px;">
-    {% endif %}
-
-    <form method="post" action="/plot2">
-        <label for="imageCount2">Enter a number (1 or 2):</label>
-        <input type="number" name="imageCount2" id="imageCount2" min="1" max="2" required>
-        <button type="submit">Submit</button>
+        <button type="submit">Generate Plot</button>
     </form>
 </body>
 </html>
+
 {% endblock %}

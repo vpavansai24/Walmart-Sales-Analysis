@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="tab-panel">
+
+  <!-- Nav tabs -->
+  <ul class="nav nav-tabs" role="tablist">
+    <li role="presentation" class="active"><a href="#home" aria-controls="home" role="tab" data-toggle="tab">Home</a>
+    </li>
+    <li role="presentation"><a href="#tab2" aria-controls="tab2" role="tab" data-toggle="tab">Data Exploration</a></li>
+    <li role="presentation"><a href="#tab3" aria-controls="tab3" role="tab" data-toggle="tab">Data Visualization</a>
+    </li>
+    <li role="presentation"><a href="#tab4" aria-controls="tab4" role="tab" data-toggle="tab">Regression Analysis</a>
+    </li>
+  </ul>
+
+  <!-- Tab panes -->
+  <div class="tab-content">
+    <div role="tabpanel" class="tab-pane active" id="home">
+
+      <h2>Introduction</h2>
+
+      <p style="text-align:center"> This webapp is created by </p>
+      <p style="text-align:center">
+      <ul>
+        <li> Prof. Olga Scrivner </li>
+        <li> Vinayak Gadag </li>
+      </ul>
+      </p>
+
+    </div>
+    <div role="tabpanel" class="tab-pane" id="tab2">
+      <h2> Exploring the data </h2>
+      <p>
+        {% for table in tables %}
+        {{titles[loop.index]}}
+        {{ table|safe }}
+        {% endfor %}
+      </p>
+    </div>
+    <div role="tabpanel" class="tab-pane" id="tab3">
+
+      <h2> Visualization </h2>
+      <img src="{{ href }}" height=600 />
+      <form method="POST">
+        <label>Input a comma-separated list of age values: </label>
+        <input name="text">
+        <input type="submit">
+      </form>
+
+    </div>
+    <div role="tabpanel" class="tab-pane" id="tab4">
+
+      <h2>Title 3 </h2>
+      <p>to do </p>
+
+
+
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}
