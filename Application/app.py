@@ -358,14 +358,15 @@ def search():
     c.execute(query, (filter_value,) if filter_value else ())
 
     results = c.fetchall()
-    print(results)
+
+    # Check if there are no records
+    if not results:
+        return render_template('no_results.html', params=request.args)
     
     columns = [x[0] for x in c.description]
     df = pd.DataFrame(results, columns=columns)
     store_details = df.to_dict(orient='records')
-    # Check if there are no records
-    if not results:
-        return render_template('no_results.html', store_details=store_details, params=request.args)
+    
     return render_template('index.html', store_details=store_details, params=request.args)
 
 @app.route('/search_sales', methods=['GET'])
@@ -387,6 +388,11 @@ def search_sales():
     c.execute(query, (filter_value,) if filter_value else ())
 
     results = c.fetchall()
+    
+    # Check if there are no records
+    if not results:
+        return render_template('no_results.html', params=request.args)
+    
     columns = [x[0] for x in c.description]
     df = pd.DataFrame(results, columns=columns)
     store_details = df.to_dict(orient='records')
