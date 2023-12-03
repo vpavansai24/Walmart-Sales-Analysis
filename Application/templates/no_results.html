@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-5">
+
+    <div class="row">
+        <div class="col">
+            <form class="form-inline">
+                <!-- Sort By Section -->
+                <div class="form-group mr-2">
+                    <label for="sort_by">Sort by:</label>
+                    <select class="form-control" name="sort_by" id="sort_by">
+                        {% for item in store_details[0].keys() %}
+                            <option value="{{ item }}" {% if params['sort_by'] == item %}selected{% endif %}>{{ item }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Buttons for Sorting -->
+                <button type="submit" class="btn btn-primary mr-2" formaction="{{ url_for('index') }}">Sort</button>
+            </form>
+        </div>
+
+        <div class="col">
+            <form class="form-inline">
+                <div class="row">
+                    <!-- Filter By Section -->
+                    <div class="col-md-6">
+                        <label for="filter_by">Filter by:</label>
+                        <select class="form-control" name="filter_by" id="filter_by">
+                            {% for item in store_details[0].keys() %}
+                                <option value="{{ item }}" {% if params['filter_by'] == item %}selected{% endif %}>{{ item }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+            
+                    <!-- Filter Value Section -->
+                    <div class="col-md-6">
+                        <label for="filter_value" class="sr-only">Filter Value:</label>
+                        <input type="text" class="form-control" name="filter_value" placeholder="Enter filter value">
+                    </div>
+                </div>
+            
+                <!-- Button for Filtering -->
+                <button type="submit" class="btn btn-primary" formaction="{{ url_for('search') }}">Filter</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <h2>No Results Found</h2>
+      </div>
+
+{% endblock %}

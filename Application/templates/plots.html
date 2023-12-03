@@ -2,7 +2,6 @@
 
 {% extends "base.html" %}
 {% block content %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,27 +13,67 @@
             text-align: center;
         }
 
+        .card-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px;
+        }
+
+        .card {
+            width: 100%; /* Set the width to 100% */
+            margin: 0 10px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
         form {
-            margin: auto;
-            display: block;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
     </style>
 </head>
 <body>
-    <h1>Store Sales Plot Form</h1>
 
-    <form method="post" action="{{ url_for('plot_store_sales') }}">
-        <label for="storeNumber">Store Number:</label>
-        <input type="number" name="storeNumber" id="storeNumber" min="1" value="16" required><br>
+    <div class="card-container">
 
-        <label for="startDate">Start Date:</label>
-        <input type="date" name="startDate" id="startDate" value="2010-02-05" required><br>
+        <div class="card">
+            <h1>Weekly Sales Over Time For A Particular Store</h1>
 
-        <label for="endDate">End Date:</label>
-        <input type="date" name="endDate" id="endDate" value="2012-10-26" required><br>
+            <form method="post" action="{{ url_for('plot_store_sales') }}">
+                <label for="storeNumber">Store Number:</label>
+                <input type="number" name="storeNumber" id="storeNumber" min="1" value="16" required><br>
 
-        <button type="submit">Generate Plot</button>
-    </form>
+                <label for="startDate">Start Date:</label>
+                <input type="date" name="startDate" id="startDate" value="2010-02-05" required><br>
+
+                <label for="endDate">End Date:</label>
+                <input type="date" name="endDate" id="endDate" value="2012-10-26" required><br>
+
+                <button type="submit">Generate Plot</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h1>Total Sales Aggregated For Each Store Over The Given Period</h1>
+
+            <form method="post" action="{{ url_for('plot_total_sales') }}">
+                <label for="startDate">Start Date:</label>
+                <input type="date" name="startDate" id="startDate" value="2011-03-01" required><br>
+
+                <label for="endDate">End Date:</label>
+                <input type="date" name="endDate" id="endDate" value="2011-03-31" required><br>
+
+                <button type="submit">Generate Plot</button>
+            </form>
+        </div>
+
+    </div>
+
 </body>
 </html>
 

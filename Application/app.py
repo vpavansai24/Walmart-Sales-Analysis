@@ -18,12 +18,26 @@ app.secret_key = "super secret string"
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-class User(UserMixin):
-    def __init__(self, email, password):
-        self.id = email
-        self.password = password
+# class User(UserMixin):
+#     def __init__(self, email, password):
+#         self.id = email
+#         self.password = password
 
-users = {"admin": User("admin", "admin")}
+# users = {"admin": User("admin", "admin")}
+
+class User(UserMixin):
+    def __init__(self, username, password, firstname, lastname, email):
+        self.id = username
+        self.username = username
+        self.password = password
+        self.firstname = firstname
+        self.lastname = lastname
+        self.email = email
+
+# Example user dictionary
+users = {
+    "admin": User("admin", "adtproject", "Admin", "User", "admin@gmail.com")
+}
 
 # Authentication
 @login_manager.user_loader
@@ -58,25 +72,46 @@ def login_post():
     login_user(user)
     return redirect(url_for('index'))
 
-#signup
-@app.route("/signup", methods=['GET'])
-def signup_get():
-    return render_template('signup.html')
-
-@app.route("/signup", methods=['POST'])
-def signup_post():
-    # Handle signup logic here
-    # Retrieve data from the form, validate, and store in the database
-    # Flash messages for success or failure
-    return redirect(url_for('login_get'))
 
 @app.get("/logout")
 @login_required
 def logout():
     logout_user()
     return 'Logged out successfully'
-# Flask routes
 
+
+# Function to add a new user to the users dictionary
+def add_user(username, password, firstname, lastname, email):
+    # Check if the username is already taken
+    if username in users:
+        flash("Username already taken. Please choose a different username.", "success")
+        return False
+
+    # Create a new User instance and add it to the users dictionary
+    new_user = User(username, password, firstname, lastname, email)
+    users[username] = new_user
+    users[email] = new_user
+    flash("Account created successfully. You can now log in.", "success")
+    return True
+
+# Flask route for handling the signup form submission
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        firstname = request.form['firstname']
+        lastname = request.form['lastname']
+        email = request.form['email']
+
+        # Call the add_user function to add the new user
+        if add_user(username, password, firstname, lastname, email):
+            # If user added successfully, redirect to login page or any other page
+            return redirect(url_for('login_get'))
+
+    return render_template('signup.html')
+
+# Flask routes
 @app.route("/", methods=['GET'])
 @login_required
 def index():
@@ -106,39 +141,16 @@ def sales():
 @app.route('/plot_sales', methods=['GET', 'POST'])
 @login_required
 def plot_store_sales():
-
     df = pd.read_csv('combined_sales_data.csv')
     df['Date'] = pd.to_datetime(df['Date'])
 
-    max_sales = df['Date'].max()
-    min_sales = df['Date'].min()
-
-    print(f"Maximum Weekly Sales: {max_sales}")
-    print(f"Minimum Weekly Sales: {min_sales}")
-
-    # Print different store numbers in the filtered DataFrame
-    unique_store_numbers = df['Store'].unique()
-    print(f"Different Store Numbers: {unique_store_numbers}")
-
     if request.method == 'POST':
-        print("saterted post")
         # Extract form data
         store_number = int(request.form['storeNumber'])
         start_date = request.form['startDate']
         end_date = request.form['endDate']
 
         df_filtered = df[(df['Store'] == store_number) & (df['Date'] >= start_date) & (df['Date'] <= end_date)]
-
-        # Print the maximum and minimum values of Weekly_Sales
-        max_sales = df_filtered['Date'].max()
-        min_sales = df_filtered['Date'].min()
-
-        print(f"Maximum Weekly Sales: {max_sales}")
-        print(f"Minimum Weekly Sales: {min_sales}")
-
-        # Print different store numbers in the filtered DataFrame
-        unique_store_numbers = df_filtered['Store'].unique()
-        print(f"Different Store Numbers: {unique_store_numbers}")
 
         # Create line plot using Plotly Express for the filtered DataFrame
         fig = px.line(df_filtered, x='Date', y='Weekly_Sales', title=f'Weekly Sales Over Time - Store {store_number}')
@@ -150,7 +162,60 @@ def plot_store_sales():
 
         return render_template('plots.html')
 
+@app.route('/plot_all_sales', methods=['GET', 'POST'])
+@login_required
+def plot_all_sales():
+    df = pd.read_csv('combined_sales_data.csv')
+    df['Date'] = pd.to_datetime(df['Date'])
 
+    if request.method == 'POST':
+        # Extract form data
+        start_date = request.form['startDate']
+        end_date = request.form['endDate']
+
+        df_filtered = df[(df['Date'] >= start_date) & (df['Date'] <= end_date)]
+
+        # Create line plot using Plotly Express for all store sales
+        fig = px.line(df_filtered, x='Date', y='Weekly_Sales', color='Store',
+                      title=f'Weekly Sales Over Time - All Stores',
+                      labels={'Weekly_Sales': 'Weekly Sales', 'Date': 'Date', 'Store': 'Store Number'})
+
+        # fig = px.line(df_filtered, x='Date', y='Weekly_Sales', title=f'Weekly Sales Over Time - Store {store_number}')
+        # fig.update_xaxes(title_text='Date')
+        # fig.update_yaxes(title_text='Weekly Sales')
+
+        # Show the plot
+        fig.show()
+
+        return render_template('plots.html')
+
+
+@app.route('/plot_total_sales', methods=['GET', 'POST'])
+@login_required
+def plot_total_sales():
+    df = pd.read_csv('combined_sales_data.csv')
+    df['Date'] = pd.to_datetime(df['Date'])
+
+    if request.method == 'POST':
+        # Extract form data
+        start_date = request.form['startDate']
+        end_date = request.form['endDate']
+
+        df_filtered = df[(df['Date'] >= start_date) & (df['Date'] <= end_date)]
+
+        aggregated_df = df_filtered.groupby(['Store'], as_index=False)['Weekly_Sales'].sum()
+
+        # Sort the aggregated DataFrame by 'Weekly_Sales'
+        aggregated_df = aggregated_df.sort_values(by='Weekly_Sales', ascending=False)
+
+        # Create a bar plot using Plotly Express
+        fig = px.bar(aggregated_df, x='Store', y='Weekly_Sales', title=f'Total Weekly Sales by Store from {start_date} to {end_date}',
+                    labels={'Weekly_Sales': 'Total Weekly Sales', 'Store': 'Store Number'})
+
+        # Show the plot
+        fig.show()
+
+        return render_template('plots.html')
 
 
 @app.route('/plot', methods=['GET', 'POST'])
@@ -264,7 +329,7 @@ def save_sales():
 
         conn.commit()
 
-        flash("Data updated successfully", 'success')
+        flash("Data updated successfully")
         # msg = "Data updated successfully."
     except sqlite3.Error as e:
         flash(f"Error: {e}", 'error')
@@ -293,9 +358,14 @@ def search():
     c.execute(query, (filter_value,) if filter_value else ())
 
     results = c.fetchall()
+    print(results)
+    
     columns = [x[0] for x in c.description]
     df = pd.DataFrame(results, columns=columns)
     store_details = df.to_dict(orient='records')
+    # Check if there are no records
+    if not results:
+        return render_template('no_results.html', store_details=store_details, params=request.args)
     return render_template('index.html', store_details=store_details, params=request.args)
 
 @app.route('/search_sales', methods=['GET'])
@@ -313,7 +383,7 @@ def search_sales():
         filter_condition = "1"
 
     c = get_db().cursor()
-    query = f'SELECT * FROM combined_sales_data WHERE {filter_condition}'
+    query = f'SELECT * FROM combined_sales_data WHERE {filter_condition} LIMIT 500'
     c.execute(query, (filter_value,) if filter_value else ())
 
     results = c.fetchall()
@@ -377,6 +447,7 @@ def insert_record():
         get_db().commit()
 
         # After insertion, you may want to send a success response
+        flash("Inserted the record successfully")
         return "Insert successful", 200
     except Exception as e:
         flash(f"Error during insertion: {e}")
@@ -389,7 +460,7 @@ def insert_record_sales():
         # Extract data from the request
         data = request.json  # Assumes data is sent as JSON
 
-        print(data)
+        # print(data)
 
         # Separate data into sales and conditions
         sales_data = {k: data[k] for k in ('StoreNumber', 'SalesDate', 'Weekly_Sales')}
@@ -402,8 +473,8 @@ def insert_record_sales():
         sales_data['Store'] = int(sales_data.pop('StoreNumber'))
         conditions_data['Store'] = int(conditions_data.pop('StoreNumber'))
 
-        print(sales_data)
-        print(conditions_data)
+        # print(sales_data)
+        # print(conditions_data)
 
         # Insert data into the store_sales table
         sales_columns = ', '.join(sales_data.keys())
@@ -431,9 +502,10 @@ def insert_record_sales():
         conn.commit()
 
         # After insertion, you may want to send a success response
+        flash("Inserted the record successfully")
         return "Insert successful", 200
     except Exception as e:
-        print(f"Error during insertion: {e}")
+        flash(f"Error during insertion: {e}")
         return "Insert failed", 200
 
 # Route used to DELETE a specific record in the database    
@@ -447,7 +519,7 @@ def delete():
             c = get_db().cursor()
             c.execute("DELETE FROM store_details WHERE storeNumber=?", (storeNumber))
             get_db().commit()
-            msg = "Record successfully deleted from the database"
+            flash("Record successfully deleted from the database")
         except:
             get_db().rollback()
             msg = "Error in the DELETE"
@@ -472,7 +544,7 @@ def delete_sales():
             c.execute("DELETE FROM store_sales WHERE Store=? AND DATE=?", (storeNumber, salesDate))
             c.execute("DELETE FROM store_conditions WHERE Store=? AND DATE=?", (storeNumber, salesDate))
             get_db().commit()
-            msg = "Record successfully deleted from the database"
+            flash("Record successfully deleted from the database")
         except:
             get_db().rollback()
             msg = "Error in the DELETE"
