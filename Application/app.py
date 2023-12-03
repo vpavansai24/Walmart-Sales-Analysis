@@ -100,12 +100,12 @@ def index():
 def sales():
     sort_by = request.args.get('sort_by', 'StoreNumber')
     c = get_db().cursor()
-    c.execute('SELECT * FROM store_details ORDER BY {}'.format(sort_by))
+    c.execute('SELECT * FROM combined_sales_data ORDER BY {} LIMIT 500'.format(sort_by))
     results = c.fetchall()
     columns = [x[0] for x in c.description]
     df = pd.DataFrame(results, columns=columns)
     store_details = df.to_dict(orient='records')
-    return render_template('index.html', store_details=store_details, params=request.args)
+    return render_template('index_sales.html', store_details=store_details, params=request.args)
 
 
 @app.route('/plot', methods=['GET', 'POST'])
@@ -138,61 +138,6 @@ def plot2():
             filename = 'AM2.png'
 
     return render_template('plots.html', filename2=filename)
-
-
-# @app.route('/plot', methods=['GET', 'POST'])
-# @login_required
-# def plot():
-#     filename = "AM3.png"
-
-#     if request.method == 'POST':
-#         image_count = int(request.form.get('imageCount', 0))
-
-#         if image_count == 1:
-#             filename = 'AM1.png'
-#         elif image_count == 2:
-#             filename = 'AM2.png'
-
-#     return render_template('plots.html', filename=filename)
-
-# @app.route('/plot', methods=['GET', 'POST'])
-# @login_required
-# def plot2():
-#     filename = "AM3.png"
-
-#     if request.method == 'POST':
-#         image_count = int(request.form.get('imageCount2', 0))
-
-#         if image_count == 1:
-#             filename = 'AM1.png'
-#         elif image_count == 2:
-#             filename = 'AM2.png'
-
-#     return render_template('plots.html', filename=filename)
- 
-# @app.route('/plots', methods=['POST'])
-# def upload_image():
-#     if 'file' not in request.files:
-#         flash('No file part')
-#         return redirect(request.url)
-#     file = request.files['file']
-#     if file.filename == '':
-#         flash('No image selected for uploading')
-#         return redirect(request.url)
-#     if file and allowed_file(file.filename):
-#         filename = secure_filename(file.filename)
-#         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-#         #print('upload_image filename: ' + filename)
-#         flash('Image successfully uploaded and displayed below')
-#         return render_template('plots.html', filename=filename)
-#     else:
-#         flash('Allowed image types are - png, jpg, jpeg, gif')
-#         return redirect(request.url)
- 
-# @app.route('/display/<filename>')
-# def display_image(filename):
-#     #print('display_image filename: ' + filename)
-#     return redirect(url_for('static', filename='uploads/' + filename), code=301)
 
 @app.route("/save", methods=['POST'])
 @login_required
@@ -252,6 +197,30 @@ def search():
     store_details = df.to_dict(orient='records')
     return render_template('index.html', store_details=store_details, params=request.args)
 
+@app.route('/search_sales', methods=['GET'])
+@login_required
+def search_sales():
+
+    filter_by_column = request.args.get('filter_by', 'StoreNumber')
+    filter_value = request.args.get('filter_value', '')
+
+    # Construct the filter condition based on the column and value
+    if filter_value:
+        filter_condition = f"{filter_by_column} LIKE ?"
+        filter_value = f"%{filter_value}%"
+    else:
+        filter_condition = "1"
+
+    c = get_db().cursor()
+    query = f'SELECT * FROM combined_sales_data WHERE {filter_condition}'
+    c.execute(query, (filter_value,) if filter_value else ())
+
+    results = c.fetchall()
+    columns = [x[0] for x in c.description]
+    df = pd.DataFrame(results, columns=columns)
+    store_details = df.to_dict(orient='records')
+    return render_template('index_sales.html', store_details=store_details, params=request.args)
+
 @app.route('/filter_sort', methods=['GET'])
 @login_required
 def filter_sort():
@@ -309,8 +278,78 @@ def insert_record():
         # After insertion, you may want to send a success response
         return "Insert successful", 200
     except Exception as e:
+        flash(f"Error during insertion: {e}")
+        return "Insert failed", 200
+
+
+@app.route('/insert', methods=['POST'])
+def insert_record():
+    try:
+        # Extract data from the request
+        data = request.json  # Assumes data is sent as JSON
+
+        print(data)
+
+        # Separate data into sales and conditions
+        sales_data = {k: data[k] for k in ('Store', 'Date', 'Weekly_Sales')}
+        conditions_data = {k: data[k] for k in ('Store', 'Date', 'Temperature', 'Fuel_Price', 'MarkDown1', 'MarkDown2', 
+                                                'MarkDown3', 'MarkDown4', 'MarkDown5', 'CPI', 'Unemployment', 'IsHoliday')}
+
+        # Insert data into the store_sales table
+        sales_columns = ', '.join(sales_data.keys())
+        sales_placeholders = ', '.join(['?' for _ in sales_data])
+        sales_values = list(sales_data.values())
+
+        sales_query = f"INSERT INTO store_sales ({sales_columns}) VALUES ({sales_placeholders})"
+        
+        # Insert data into the store_conditions table
+        conditions_columns = ', '.join(conditions_data.keys())
+        conditions_placeholders = ', '.join(['?' for _ in conditions_data])
+        conditions_values = list(conditions_data.values())
+
+        conditions_query = f"INSERT INTO store_conditions ({conditions_columns}) VALUES ({conditions_placeholders})"
+
+        # Use the database connection from your get_db() function
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # Insert into store_sales
+        cursor.execute(sales_query, sales_values)
+        # Insert into store_conditions
+        cursor.execute(conditions_query, conditions_values)
+
+        conn.commit()
+
+        # After insertion, you may want to send a success response
+        return "Insert successful", 200
+    except Exception as e:
         print(f"Error during insertion: {e}")
-        return "Insert failed", 500
+        return "Insert failed", 200
+
+@app.route('/insert', methods=['POST'])
+def insert_record_sales():
+    try:
+        # Extract data from the request
+        data = request.json  # Assumes data is sent as JSON
+
+        print(data)
+
+        c = get_db().cursor()
+
+        # Insert data into the store_details table
+        columns = ', '.join(data.keys())
+        placeholders = ', '.join(['?' for _ in data])
+        values = list(data.values())
+
+        query = f"INSERT INTO store_details ({columns}) VALUES ({placeholders})"
+        c.execute(query, values)
+        get_db().commit()
+
+        # After insertion, you may want to send a success response
+        return "Insert successful", 200
+    except Exception as e:
+        print(f"Error during insertion: {e}")
+        return "Insert failed", 200
 
 # Route used to DELETE a specific record in the database    
 @app.route("/delete", methods=['POST','GET'])

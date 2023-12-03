@@ -17,7 +17,7 @@
                 </div>
 
                 <!-- Buttons for Sorting -->
-                <button type="submit" class="btn btn-primary mr-2" formaction="{{ url_for('index') }}">Sort</button>
+                <button type="submit" class="btn btn-primary mr-2" formaction="{{ url_for('sales') }}">Sort</button>
             </form>
         </div>
 
@@ -42,7 +42,7 @@
                 </div>
             
                 <!-- Button for Filtering -->
-                <button type="submit" class="btn btn-primary" formaction="{{ url_for('search') }}">Filter</button>
+                <button type="submit" class="btn btn-primary" formaction="{{ url_for('search_sales') }}">Filter</button>
             </form>
         </div>
     </div>
@@ -54,24 +54,61 @@
                 <th scope="col">StoreName</th>
                 <th scope="col">Manager</th>
                 <th scope="col">Location</th>
+                <th scope="col">SalesDate</th>
+                <th scope="col">Weekly_Sales</th>
+                <th scope="col">Temperature</th>
+                <th scope="col">Fuel_Price</th>
+                <th scope="col">MarkDown1</th>
+                <th scope="col">MarkDown2</th>
+                <th scope="col">MarkDown3</th>
+                <th scope="col">MarkDown4</th>
+                <th scope="col">MarkDown5</th>
+                <th scope="col">CPI</th>
+                <th scope="col">Unemployment</th>
+                <th scope="col">IsHoliday</th>
             </tr>
         </thead>
         <tbody>
             <tr style="display: table-row">
-                <form id="insertForm" action="{{ url_for('insert_record') }}" method="POST">
+                <form id="insertForm" action="{{ url_for('insert_record_sales') }}" method="POST">
                     <td><input name="StoreNumber" type="text"></td>
                     <td><input name="StoreName" type="text"></td>
                     <td><input name="Manager" type="text"></td>
                     <td><input name="Location" type="text"></td>
+                    <td><input name="SalesDate" type="text"></td>
+                    <td><input name="Weekly_Sales" type="text"></td>
+                    <td><input name="Temperature" type="text"></td>
+                    <td><input name="Fuel_Price" type="text"></td>
+                    <td><input name="MarkDown1" type="text"></td>
+                    <td><input name="MarkDown2" type="text"></td>
+                    <td><input name="MarkDown3" type="text"></td>
+                    <td><input name="MarkDown4" type="text"></td>
+                    <td><input name="MarkDown5" type="text"></td>
+                    <td><input name="CPI" type="text"></td>
+                    <td><input name="Unemployment" type="text"></td>
+                    <td><input name="IsHoliday" type="text"></td>
                     <td><button type="button" onclick="insertRow()">Insert</button></td>
                 </form>        
             </tr>
+
             {% for item in store_details %}
             <tr style="display: table-row" id="{{'row_edit_' + loop.index | string}}">
                 <td>{{item.StoreNumber}}</td>
                 <td>{{item.StoreName}}</td>
                 <td>{{item.Manager}}</td>
                 <td>{{item.Location}}</td>
+                <td>{{item.SalesDate}}</td>
+                <td>{{item.Weekly_Sales}}</td>
+                <td>{{item.Temperature}}</td>
+                <td>{{item.Fuel_Price}}</td>
+                <td>{{item.MarkDown1}}</td>
+                <td>{{item.MarkDown2}}</td>
+                <td>{{item.MarkDown3}}</td>
+                <td>{{item.MarkDown4}}</td>
+                <td>{{item.MarkDown5}}</td>
+                <td>{{item.CPI}}</td>
+                <td>{{item.Unemployment}}</td>
+                <td>{{item.IsHoliday}}</td>
                 <td><button onclick="editRow({{loop.index}})">Edit</button></td>
                 <td><form onsubmit="return confirm('Are you sure you want to DELETE this record from the Database?');" 
                     action="{{url_for('delete')}}" method="POST">
@@ -83,6 +120,18 @@
                 <td><input name="StoreName" type="text" value="{{item.StoreName}}"></input></td>
                 <td><input name="Manager" type="text" value="{{item.Manager}}"></input></td>
                 <td><input name="Location" type="text" value="{{item.Location}}"></input></td>
+                <td><input name="SalesDate" type="text" value="{{item.SalesDate}}"></input></td>
+                <td><input name="Weekly_Sales" type="text" value="{{item.Weekly_Sales}}"></input></td>
+                <td><input name="Temperature" type="text" value="{{item.Temperature}}"></input></td>
+                <td><input name="Fuel_Price" type="text" value="{{item.Fuel_Price}}"></input></td>
+                <td><input name="MarkDown1" type="text" value="{{item.MarkDown1}}"></input></td>
+                <td><input name="MarkDown2" type="text" value="{{item.MarkDown2}}"></input></td>
+                <td><input name="MarkDown3" type="text" value="{{item.MarkDown3}}"></input></td>
+                <td><input name="MarkDown4" type="text" value="{{item.MarkDown4}}"></input></td>
+                <td><input name="MarkDown5" type="text" value="{{item.MarkDown5}}"></input></td>
+                <td><input name="CPI" type="text" value="{{item.CPI}}"></input></td>
+                <td><input name="Unemployment" type="text" value="{{item.Unemployment}}"></input></td>
+                <td><input name="IsHoliday" type="text" value="{{item.IsHoliday}}"></input></td>
                 <td><button onclick="saveRow({{loop.index}})">Save</button></td>
             </tr>
             {% endfor %}
