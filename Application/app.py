@@ -103,6 +103,7 @@ def sales():
     c.execute('SELECT * FROM combined_sales_data ORDER BY {} LIMIT 500'.format(sort_by))
     results = c.fetchall()
     columns = [x[0] for x in c.description]
+    # print("sales function columns:", columns)
     df = pd.DataFrame(results, columns=columns)
     store_details = df.to_dict(orient='records')
     return render_template('index_sales.html', store_details=store_details, params=request.args)
@@ -162,6 +163,62 @@ def save():
 
         # Commit the changes to the database
         get_db().commit()
+
+        flash("Data updated successfully", 'success')
+        # msg = "Data updated successfully."
+    except sqlite3.Error as e:
+        flash(f"Error: {e}", 'error')
+        # msg = f"Error: {e}"
+
+    # flash(msg)
+    return redirect(url_for('index'))
+
+@app.route("/save_sales", methods=['POST'])
+@login_required
+def save_sales():
+    data = request.json
+    print(data)
+
+    c = get_db().cursor()
+
+    try:
+
+        # Separate data into sales and conditions
+        sales_data = {k: data[k] for k in ('StoreNumber', 'SalesDate', 'Weekly_Sales')}
+        conditions_data = {k: data[k] for k in ('StoreNumber', 'SalesDate', 'Temperature', 'Fuel_Price', 'MarkDown1', 'MarkDown2', 
+                                                'MarkDown3', 'MarkDown4', 'MarkDown5', 'CPI', 'Unemployment', 'IsHoliday')}
+        
+        sales_data['Date'] = sales_data.pop('SalesDate')
+        conditions_data['Date'] = conditions_data.pop('SalesDate')
+
+        sales_data['Store'] = int(sales_data.pop('StoreNumber'))
+        conditions_data['Store'] = int(conditions_data.pop('StoreNumber'))
+
+        # print(sales_data)
+        # print(conditions_data)
+
+        # Update data in the store_sales table
+        sales_update_columns = ', '.join(f"{key} = ?" for key in sales_data.keys())
+        sales_update_values = list(sales_data.values())
+
+        sales_update_query = f"UPDATE store_sales SET {sales_update_columns} WHERE Store = ? AND Date = ?"
+        
+        # Update data in the store_conditions table
+        conditions_update_columns = ', '.join(f"{key} = ?" for key in conditions_data.keys())
+        conditions_update_values = list(conditions_data.values())
+
+        conditions_update_query = f"UPDATE store_conditions SET {conditions_update_columns} WHERE Store = ? AND Date = ?"
+
+        # Use the database connection from your get_db() function
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # Update store_sales
+        cursor.execute(sales_update_query, sales_update_values + [sales_data['Store'], sales_data['Date']])
+        # Update store_conditions
+        cursor.execute(conditions_update_query, conditions_update_values + [conditions_data['Store'], conditions_data['Date']])
+
+        conn.commit()
 
         flash("Data updated successfully", 'success')
         # msg = "Data updated successfully."
@@ -291,9 +348,18 @@ def insert_record_sales():
         print(data)
 
         # Separate data into sales and conditions
-        sales_data = {k: data[k] for k in ('Store', 'Date', 'Weekly_Sales')}
-        conditions_data = {k: data[k] for k in ('Store', 'Date', 'Temperature', 'Fuel_Price', 'MarkDown1', 'MarkDown2', 
+        sales_data = {k: data[k] for k in ('StoreNumber', 'SalesDate', 'Weekly_Sales')}
+        conditions_data = {k: data[k] for k in ('StoreNumber', 'SalesDate', 'Temperature', 'Fuel_Price', 'MarkDown1', 'MarkDown2', 
                                                 'MarkDown3', 'MarkDown4', 'MarkDown5', 'CPI', 'Unemployment', 'IsHoliday')}
+        
+        sales_data['Date'] = sales_data.pop('SalesDate')
+        conditions_data['Date'] = conditions_data.pop('SalesDate')
+
+        sales_data['Store'] = int(sales_data.pop('StoreNumber'))
+        conditions_data['Store'] = int(conditions_data.pop('StoreNumber'))
+
+        print(sales_data)
+        print(conditions_data)
 
         # Insert data into the store_sales table
         sales_columns = ', '.join(sales_data.keys())
@@ -326,31 +392,6 @@ def insert_record_sales():
         print(f"Error during insertion: {e}")
         return "Insert failed", 200
 
-# @app.route('/insert_sales', methods=['POST'])
-# def insert_record_sales():
-#     try:
-#         # Extract data from the request
-#         data = request.json  # Assumes data is sent as JSON
-
-#         print(data)
-
-#         c = get_db().cursor()
-
-#         # Insert data into the store_details table
-#         columns = ', '.join(data.keys())
-#         placeholders = ', '.join(['?' for _ in data])
-#         values = list(data.values())
-
-#         query = f"INSERT INTO store_details ({columns}) VALUES ({placeholders})"
-#         c.execute(query, values)
-#         get_db().commit()
-
-#         # After insertion, you may want to send a success response
-#         return "Insert successful", 200
-#     except Exception as e:
-#         print(f"Error during insertion: {e}")
-#         return "Insert failed", 200
-
 # Route used to DELETE a specific record in the database    
 @app.route("/delete", methods=['POST','GET'])
 def delete():
@@ -372,6 +413,31 @@ def delete():
             # Send the transaction message to result.html
             # return render_template('result.html',msg=msg)
             return redirect(url_for('index'))
+
+# Route used to DELETE a specific record in the database    
+@app.route("/delete_sales", methods=['POST','GET'])
+def delete_sales():
+    if request.method == 'POST':
+        try:
+             # Use the hidden input value of id from the form to get the storeNumber
+            storeNumber = request.form['store_number']
+            salesDate = request.form['sales_date']
+            
+            # DELETE a specific record based on storeNumber
+            c = get_db().cursor()
+            c.execute("DELETE FROM store_sales WHERE Store=? AND DATE=?", (storeNumber, salesDate))
+            c.execute("DELETE FROM store_conditions WHERE Store=? AND DATE=?", (storeNumber, salesDate))
+            get_db().commit()
+            msg = "Record successfully deleted from the database"
+        except:
+            get_db().rollback()
+            msg = "Error in the DELETE"
+
+        finally:
+            # con.close()
+            # Send the transaction message to result.html
+            # return render_template('result.html',msg=msg)
+            return redirect(url_for('sales'))
 
 def get_db():
     db = getattr(g, '_database', None)

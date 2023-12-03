@@ -111,8 +111,9 @@
                 <td>{{item.IsHoliday}}</td>
                 <td><button onclick="editRow({{loop.index}})">Edit</button></td>
                 <td><form onsubmit="return confirm('Are you sure you want to DELETE this record from the Database?');" 
-                    action="{{url_for('delete')}}" method="POST">
-                    <input type="hidden" name="id" value={{item.StoreNumber}}>
+                    action="{{url_for('delete_sales')}}" method="POST">
+                    <input type="hidden" name="store_number" value={{item.StoreNumber}}>
+                    <input type="hidden" name="sales_date" value={{item.SalesDate}}>
                     <input type="submit" value="Delete"></form> </td>
             </tr>
             <tr style="display: none" id="{{'row_save_' + loop.index | string}}">
@@ -153,7 +154,7 @@
             });
 
             // Send the data to the server using fetch
-            fetch("/insert", {
+            fetch("/insert_sales", {
                 method: 'POST',
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify(data)
@@ -196,7 +197,7 @@
                 data[key] = value
             }
             console.log(data)
-            fetch("/save", {
+            fetch("/save_sales", {
                 method: 'POST',
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify(data)
