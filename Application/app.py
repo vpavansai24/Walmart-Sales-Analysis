@@ -282,8 +282,8 @@ def insert_record():
         return "Insert failed", 200
 
 
-@app.route('/insert', methods=['POST'])
-def insert_record():
+@app.route('/insert_sales', methods=['POST'])
+def insert_record_sales():
     try:
         # Extract data from the request
         data = request.json  # Assumes data is sent as JSON
@@ -326,30 +326,30 @@ def insert_record():
         print(f"Error during insertion: {e}")
         return "Insert failed", 200
 
-@app.route('/insert', methods=['POST'])
-def insert_record_sales():
-    try:
-        # Extract data from the request
-        data = request.json  # Assumes data is sent as JSON
+# @app.route('/insert_sales', methods=['POST'])
+# def insert_record_sales():
+#     try:
+#         # Extract data from the request
+#         data = request.json  # Assumes data is sent as JSON
 
-        print(data)
+#         print(data)
 
-        c = get_db().cursor()
+#         c = get_db().cursor()
 
-        # Insert data into the store_details table
-        columns = ', '.join(data.keys())
-        placeholders = ', '.join(['?' for _ in data])
-        values = list(data.values())
+#         # Insert data into the store_details table
+#         columns = ', '.join(data.keys())
+#         placeholders = ', '.join(['?' for _ in data])
+#         values = list(data.values())
 
-        query = f"INSERT INTO store_details ({columns}) VALUES ({placeholders})"
-        c.execute(query, values)
-        get_db().commit()
+#         query = f"INSERT INTO store_details ({columns}) VALUES ({placeholders})"
+#         c.execute(query, values)
+#         get_db().commit()
 
-        # After insertion, you may want to send a success response
-        return "Insert successful", 200
-    except Exception as e:
-        print(f"Error during insertion: {e}")
-        return "Insert failed", 200
+#         # After insertion, you may want to send a success response
+#         return "Insert successful", 200
+#     except Exception as e:
+#         print(f"Error during insertion: {e}")
+#         return "Insert failed", 200
 
 # Route used to DELETE a specific record in the database    
 @app.route("/delete", methods=['POST','GET'])
