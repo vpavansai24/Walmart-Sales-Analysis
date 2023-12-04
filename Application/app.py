@@ -388,7 +388,7 @@ def search_sales():
     c.execute(query, (filter_value,) if filter_value else ())
 
     results = c.fetchall()
-    
+
     # Check if there are no records
     if not results:
         return render_template('no_results.html', params=request.args)
@@ -453,7 +453,7 @@ def insert_record():
         get_db().commit()
 
         # After insertion, you may want to send a success response
-        flash("Inserted the record successfully")
+        # flash("Inserted the record successfully")
         return "Insert successful", 200
     except Exception as e:
         flash(f"Error during insertion: {e}")
@@ -525,7 +525,7 @@ def delete():
             c = get_db().cursor()
             c.execute("DELETE FROM store_details WHERE storeNumber=?", (storeNumber))
             get_db().commit()
-            flash("Record successfully deleted from the database")
+            # flash("Record successfully deleted from the database")
         except:
             get_db().rollback()
             msg = "Error in the DELETE"
