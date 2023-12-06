@@ -193,15 +193,6 @@ def plot_all_sales():
         # Use render_template to pass graphJSON to html
         return render_template('show_plots.html', graphJSON=graphJSON)
 
-        # fig = px.line(df_filtered, x='Date', y='Weekly_Sales', title=f'Weekly Sales Over Time - Store {store_number}')
-        # fig.update_xaxes(title_text='Date')
-        # fig.update_yaxes(title_text='Weekly Sales')
-
-        # Show the plot
-        # fig.show()
-
-        # return render_template('plots.html')
-
 
 @app.route('/plot_total_sales', methods=['GET', 'POST'])
 @login_required
