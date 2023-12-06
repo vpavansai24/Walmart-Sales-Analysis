@@ -44,7 +44,7 @@
         <div class="card">
             <h1>Weekly Sales Over Time For A Particular Store</h1>
 
-            <form method="post" action="{{ url_for('plot_store_sales') }}">
+            <form method="post" action="{{ url_for('plot_store_sales') }}" target="_blank">
                 <label for="storeNumber">Store Number:</label>
                 <input type="number" name="storeNumber" id="storeNumber" min="1" value="16" required><br>
 
@@ -61,7 +61,7 @@
         <div class="card">
             <h1>Total Sales Aggregated For Each Store Over The Given Period</h1>
 
-            <form method="post" action="{{ url_for('plot_total_sales') }}">
+            <form method="post" action="{{ url_for('plot_total_sales') }}" target="_blank">
                 <label for="startDate">Start Date:</label>
                 <input type="date" name="startDate" id="startDate" value="2011-03-01" required><br>
 

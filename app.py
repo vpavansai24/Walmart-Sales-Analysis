@@ -2,6 +2,8 @@ from flask import Flask, render_template, g, request, make_response, redirect, u
 import os
 import sqlite3
 import pandas as pd
+import json
+import plotly
 import plotly.express as px
 from flask_login import LoginManager, UserMixin, login_required, login_user, logout_user
 from werkzeug.utils import secure_filename
@@ -157,10 +159,16 @@ def plot_store_sales():
         fig.update_xaxes(title_text='Date')
         fig.update_yaxes(title_text='Weekly Sales')
 
-        # Show the plot
-        fig.show()
+        # Create graphJSON
+        graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+        
+        # Use render_template to pass graphJSON to html
+        return render_template('show_plots.html', graphJSON=graphJSON)
 
-        return render_template('plots.html')
+        # Show the plot
+        # fig.show()
+
+        # return render_template('plots.html')
 
 @app.route('/plot_all_sales', methods=['GET', 'POST'])
 @login_required
@@ -179,15 +187,20 @@ def plot_all_sales():
         fig = px.line(df_filtered, x='Date', y='Weekly_Sales', color='Store',
                       title=f'Weekly Sales Over Time - All Stores',
                       labels={'Weekly_Sales': 'Weekly Sales', 'Date': 'Date', 'Store': 'Store Number'})
+        # Create graphJSON
+        graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+        
+        # Use render_template to pass graphJSON to html
+        return render_template('show_plots.html', graphJSON=graphJSON)
 
         # fig = px.line(df_filtered, x='Date', y='Weekly_Sales', title=f'Weekly Sales Over Time - Store {store_number}')
         # fig.update_xaxes(title_text='Date')
         # fig.update_yaxes(title_text='Weekly Sales')
 
         # Show the plot
-        fig.show()
+        # fig.show()
 
-        return render_template('plots.html')
+        # return render_template('plots.html')
 
 
 @app.route('/plot_total_sales', methods=['GET', 'POST'])
@@ -211,11 +224,17 @@ def plot_total_sales():
         # Create a bar plot using Plotly Express
         fig = px.bar(aggregated_df, x='Store', y='Weekly_Sales', title=f'Total Weekly Sales by Store from {start_date} to {end_date}',
                     labels={'Weekly_Sales': 'Total Weekly Sales', 'Store': 'Store Number'})
+        
+        # Create graphJSON
+        graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+        
+        # Use render_template to pass graphJSON to html
+        return render_template('show_plots.html', graphJSON=graphJSON)
 
         # Show the plot
-        fig.show()
+        # fig.show()
 
-        return render_template('plots.html')
+        # return render_template('plots.html')
 
 
 @app.route('/plot', methods=['GET', 'POST'])
